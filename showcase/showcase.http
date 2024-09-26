@@ -1,0 +1,6 @@
+@showcase_HostAddress = http://localhost:5040
+
+GET {{showcase_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
