@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rozvrchol</title>
-  <!-- Include Bootstrap CSS -->
+  <title>Async Login</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     body {
@@ -55,46 +54,70 @@
       color: #fff;
       margin-top: 50px;
     }
+
+    #error-message {
+      color: red;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <div class="container">
-      {% if error %}
-            <div class="alert alert-danger">
-                {{ error }}
-            </div>
-      {% endif %}
-    <h2>LOG IN</h2>
-    <div class="form-container">
-      <form id="userForm" action="http://localhost:5000/login" method="post">
-        <div class="form-group">
-          <input class="form-control" type="text" id="name" name="name" placeholder="Username" required>
-        </div>
-        <div class="form-group">
-          <input class="form-control" type="password" id="password" name="password" placeholder="Password" required>
-        </div>
-        <!-- Include other form fields as needed -->
-        <button class="btn btn-primary btn-block" type="submit">Log in</button>
-      </form>
-
+<div class="container">
+  <h2>LOG IN</h2>
+  <div class="form-container">
+    <div id="error-message">Invalid username or password</div>
+    <form id="loginForm">
       <div class="form-group">
-        <form id="guest" action="http://localhost:5000/signIn" method="post">
-          <input type="submit" class="btn btn-secondary btn-block" value="Not registered yet?"/>
-        </form>
+        <input class="form-control" type="text" id="username" name="username" placeholder="Username" required>
       </div>
-
-      <div id="guest" class="form-group">
-        <form id="guestForm1" action="http://localhost:5000/infoReroute" method="post">
-          <input type="submit" class="btn btn-secondary btn-block" value="Log in as a guest"/>
-        </form>
+      <div class="form-group">
+        <input class="form-control" type="password" id="password" name="password" placeholder="Password" required>
       </div>
+      <button class="btn btn-primary btn-block" type="submit">Log in</button>
+    </form>
+    <div class="form-group">
+      <button id="guestLogin" class="btn btn-secondary btn-block">Log in as a guest</button>
     </div>
   </div>
+</div>
 
-  <!-- Include jQuery and Bootstrap JS -->
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Include jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+  document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault(); // Prevent form from submitting the traditional way
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    // Make a POST request to the login API
+    const response = await fetch('http://localhost:5050/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name: username, password: password })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Redirect to dashboard or show a success message
+      window.location.href = "/views/admin/adminview.html";
+    } else {
+      // Show error message
+      document.getElementById("error-message").style.display = "block";
+    }
+  });
+
+  document.getElementById("guestLogin").addEventListener("click", function() {
+    // Handle guest login logic
+    window.location.href = "/guest";
+  });
+</script>
 
 </body>
 </html>

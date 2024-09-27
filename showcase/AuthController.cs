@@ -18,8 +18,24 @@ namespace showcase.Controllers
         {
             _context = context;
         }
-        
+
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public async Task<IActionResult> Login([FromBody] User userLoggingIn)
+        {
+            if (string.IsNullOrEmpty(userLoggingIn.Name) || string.IsNullOrEmpty(userLoggingIn.Password))
+            {
+                return BadRequest("Username and password is incorrect");
+            }
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == userLoggingIn.Name 
+                                                               && u.Password == userLoggingIn.Password);
+            
+            if (user == null)
+            {
+                return BadRequest("User doesn't exist!");
+            }
+
+            return Redirect("/views/admin/adminview.html");
+        }
     }
 }
