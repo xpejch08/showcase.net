@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Async Login</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <style>
-    body {
-      background-color: #f8f9fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-    .container {
-      max-width: 720px;
-    }
+        .container {
+            max-width: 720px;
+        }
 
-    .form-container {
-      max-width: 50%;
-      margin: auto;
-    }
+        .form-container {
+            max-width: 50%;
+            margin: auto;
+        }
 
-    h2 {
-      font-size: 2em;
-      font-weight: bold;
-      color: #007bff;
-      margin-bottom: 20px;
-      text-align: center;
-    }
+        h2 {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .form-group {
-      margin-top: 20px;
-    }
+        .form-group {
+            margin-top: 20px;
+        }
 
-    .form-control {
-      font-size: 1em;
-    }
+        .form-control {
+            font-size: 1em;
+        }
 
-    .btn {
-      font-size: 1em;
-    }
+        .btn {
+            font-size: 1em;
+        }
 
-    .btn-primary {
-      background-color: #007bff;
-      color: #fff;
-    }
+        .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+        }
 
-    .btn-secondary {
-      background-color: #6c757d;
-      color: #fff;
-      margin-top: 50px;
-    }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+            margin-top: 50px;
+        }
 
-    #error-message {
-      color: red;
-      display: none;
-    }
-  </style>
+        #error-message {
+            color: red;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>LOG IN</h2>
-  <div class="form-container">
-    <div id="error-message">Invalid username or password</div>
-    <form id="loginForm">
-      <div class="form-group">
-        <input class="form-control" type="text" id="username" name="username" placeholder="Username" required>
-      </div>
-      <div class="form-group">
-        <input class="form-control" type="password" id="password" name="password" placeholder="Password" required>
-      </div>
-      <button class="btn btn-primary btn-block" type="submit">Log in</button>
-    </form>
-    <div class="form-group">
-      <button id="guestLogin" class="btn btn-secondary btn-block">Log in as a guest</button>
+    <h2>LOG IN</h2>
+    <div class="form-container">
+        <div id="error-message">Invalid username or password</div>
+        <form id="loginForm" method="POST" action="http://localhost:5050/api/auth/login">
+            <div class="form-group">
+                <input class="form-control" type="text" id="username" name="name" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <input class="form-control" type="password" id="password" name="password" placeholder="Password" required>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Log in</button>
+        </form>
+        <div class="form-group">
+            <button id="guestLogin" class="btn btn-secondary btn-block">Log in as a guest</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Include jQuery and Bootstrap JS -->
@@ -87,36 +87,34 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-  document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault(); // Prevent form from submitting the traditional way
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();  // Prevent the default form submission
 
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
 
-    // Make a POST request to the login API
-    const response = await fetch('http://localhost:5050/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name: username, password: password })
+        // Make a POST request to authenticate the user
+        const response = await fetch('http://localhost:5050/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: username, password: password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.html) {
+            // Inject the returned HTML into the body or any other container
+            document.open();
+            document.write(result.html);
+            document.close();
+        } else {
+            // Show an error message
+            document.getElementById("error-message").textContent = result.message || "Error during login.";
+            document.getElementById("error-message").style.display = "block";
+        }
     });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      // Redirect to dashboard or show a success message
-      window.location.href = "/views/admin/adminview.html";
-    } else {
-      // Show error message
-      document.getElementById("error-message").style.display = "block";
-    }
-  });
-
-  document.getElementById("guestLogin").addEventListener("click", function() {
-    // Handle guest login logic
-    window.location.href = "/guest";
-  });
 </script>
 
 </body>

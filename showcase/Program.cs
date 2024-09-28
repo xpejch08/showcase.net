@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using showcase;
 
@@ -8,6 +9,11 @@ builder.WebHost.UseUrls("http://localhost:5050");
 // Add services to the container
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=showcase.db"));
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.LoginPath = "/login.html";
+    options.AccessDeniedPath = "/login.html";
+});
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
@@ -36,7 +42,14 @@ defaultFileOptions.DefaultFileNames.Add("login.html"); // Set test.html as the d
 app.UseDefaultFiles(defaultFileOptions);  // Use default files (like test.html)
 app.UseStaticFiles();                     // Serve static files from wwwroot
 
+
+
+
 app.UseRouting();
+app.UseEndpoints(endpoints => endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}"
+    ));
 app.MapControllers(); // Maps controller routes
 
 // Initialize database if needed

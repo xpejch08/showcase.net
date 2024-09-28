@@ -41,4 +41,11 @@
       <None Include="wwwroot\views\studentview.html" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="AuthViews\adminview.html">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

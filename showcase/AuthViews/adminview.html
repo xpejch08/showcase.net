@@ -10,7 +10,6 @@
   <style>
     body {
       background-color: #f8f9fa;
-      margin-top: 50px;
     }
 
     h1 {
@@ -72,11 +71,7 @@
 <body>
 
   <div class="container">
-    {% if error %}
-      <div class="alert alert-danger">
-        {{ error }}
-      </div>
-    {% endif %}
+    <div id="error-message">Invalid username or password</div>
 
     <div class="row">
       <div class="col"></div>
