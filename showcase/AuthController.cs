@@ -6,15 +6,52 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 using showcase;
 
 namespace showcase.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Admin")]
+    [Route("admin")]
+    public class AdminController : Controller
+    {
+        [HttpGet("dashboard")]
+        public IActionResult AdminView()
+        {
+            try
+            {
+                return Ok(new { redirectUrl = "/views/admin/adminview.html" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+        
+        [HttpGet("test-admin")]
+        public IActionResult TestAdmin()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return Ok("You are an Admin!");
+            }
+            return Unauthorized("You are not an Admin.");
+        }
+
+    }
+    
+
+    
+    [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private const int admin = 1;
         private readonly AppDbContext _context;
         private User _loggedUser;
 
@@ -62,6 +99,11 @@ namespace showcase.Controllers
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, MapRoleToUser(user))
             };
+            
+            foreach (var claim in claims)
+            {
+                Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
+            }
             return claims;
         }
 
@@ -82,16 +124,29 @@ namespace showcase.Controllers
         
         private string MapRoleToUser(User userLoggingIn)
         {
-            if (userLoggingIn.Role == 1)
+            if (userLoggingIn.Role == admin)
             {
                 return("Admin");
             }
-            return("User");
+            else if (userLoggingIn.Role == 2)
+            {
+                return ("Garant");
+            }
+            else if (userLoggingIn.Role == 3)
+            {
+                return ("Teacher");
+            }
+            else if (userLoggingIn.Role == 5)
+            {
+                return ("Student");   
+            }
+            return ("Guest");
+            
         }
 
-        private bool CheckIfUserIsAdmin(User user)
+        private bool CheckIfUserIsAdmin()
         {
-            if (user.Role == 1)
+            if (_loggedUser.Role == admin)
             {
                 return true;
             }
@@ -125,17 +180,13 @@ namespace showcase.Controllers
             
             var claimsPrincipal = CreateClaimsPrincipal(_loggedUser);
             
+            
             await SignInUserAsync(claimsPrincipal);
 
 
-            if (CheckIfUserIsAdmin(_loggedUser))
+            if (CheckIfUserIsAdmin())
             {
-                String htmlContent = await CreateHtmlContentIfHtmlFileExists();
-                if (htmlContent == String.Empty)
-                {
-                    return NotFound(new { message = "File not found." });
-                }
-                return Ok(new { html = htmlContent });
+                return Redirect("/admin/dashboard");
             }
             return BadRequest(new { message = "Unauthorized." });
         }

@@ -88,34 +88,51 @@
 
 <script>
     document.getElementById("loginForm").addEventListener("submit", async function(event) {
-        event.preventDefault();  // Prevent the default form submission
+        event.preventDefault(); // Prevent form from submitting the traditional way
 
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
-        // Make a POST request to authenticate the user
-        const response = await fetch('http://localhost:5050/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: username, password: password })
-        });
+        try {
+            // Make a POST request to the login API
+            const response = await fetch('http://localhost:5050/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: username, password: password })
+            });
 
-        const result = await response.json();
+            // Check if the response contains a redirect URL (assumes server returns a JSON response)
+            if (response.ok) {
+                const data = await response.json();
 
-        if (response.ok && result.html) {
-            // Inject the returned HTML into the body or any other container
-            document.open();
-            document.write(result.html);
-            document.close();
-        } else {
+                if (data.redirectUrl) {
+                    // If the server provides a redirect URL, navigate to it
+                    window.location.href = data.redirectUrl;
+                } else {
+                    // Handle other types of successful responses (e.g., regular success message)
+                    console.log("Login successful, but no redirect provided.");
+                }
+            } else {
+                // If the response is not ok, handle errors (e.g., invalid login)
+                document.getElementById("error-message").style.display = "block";
+                document.getElementById("error-message").textContent = "Login failed. Please check your username and password.";
+            }
+        } catch (error) {
+            console.error("Error occurred during login:", error);
             // Show an error message
-            document.getElementById("error-message").textContent = result.message || "Error during login.";
             document.getElementById("error-message").style.display = "block";
+            document.getElementById("error-message").textContent = "An unexpected error occurred. Please try again.";
         }
     });
+
+    // Optionally handle guest login
+    document.getElementById("guestLogin").addEventListener("click", function() {
+        window.location.href = "/guest";
+    });
 </script>
+
 
 </body>
 </html>

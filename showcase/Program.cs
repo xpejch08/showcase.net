@@ -14,6 +14,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.LoginPath = "/login.html";
     options.AccessDeniedPath = "/login.html";
 });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
@@ -40,17 +46,40 @@ defaultFileOptions.DefaultFileNames.Clear();
 defaultFileOptions.DefaultFileNames.Add("login.html"); // Set test.html as the default file
 
 app.UseDefaultFiles(defaultFileOptions);  // Use default files (like test.html)
-app.UseStaticFiles();                     // Serve static files from wwwroot
-
-
-
 
 app.UseRouting();
-app.UseEndpoints(endpoints => endpoints.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}"
-    ));
-app.MapControllers(); // Maps controller routes
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/views/admin"))
+    {
+        if (context.User.IsInRole("Admin"))
+        {
+            await next();
+        }
+        else
+        {
+            context.Response.StatusCode = 403;
+            await context.Response.WriteAsync("Access Denied");
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
+
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
+app.UseStaticFiles(); // Keep serving static files, but restrict access based on role
+// Serve static files from wwwroot
 
 // Initialize database if needed
 using (var scope = app.Services.CreateScope())
