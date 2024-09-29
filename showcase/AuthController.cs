@@ -16,49 +16,43 @@ namespace showcase.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private User _loggedUser;
 
         public AuthController(AppDbContext context)
         {
             _context = context;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User userLoggingIn)
+
+        private bool CheckIfInputsMissing(User userBeingChecked)
         {
-            if (string.IsNullOrEmpty(userLoggingIn.Name) || string.IsNullOrEmpty(userLoggingIn.Password))
+            if (string.IsNullOrEmpty(userBeingChecked.Name) || string.IsNullOrEmpty(userBeingChecked.Password))
             {
-                return BadRequest("Username and password is incorrect");
+                return false;
             }
-            
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == userLoggingIn.Name 
-                                                               && u.Password == userLoggingIn.Password);
-            
+
+            return true;
+        }
+
+        private bool CheckIfUserFound(User? user)
+        {
             if (user == null)
             {
-                return BadRequest("User doesn't exist!");
+                return false;
             }
-            
-            var claimsIdentity = new ClaimsIdentity(AddClaims(user), 
-                CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                claimsPrincipal
-            );
-
-
-            if (user.Role == 1)
+            return true;
+        }
+        
+        private async Task<bool> CheckIfUserExistsInDatabaseAsync (User userBeingChecked)
+        {
+            User? user =  await _context.Users.FirstOrDefaultAsync(u=>u.Name == userBeingChecked.Name 
+                                                               && u.Password == userBeingChecked.Password);
+            if (!CheckIfUserFound(user))
             {
-                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "AuthViews", "adminview.html");
-                if (System.IO.File.Exists(filepath))
-                {
-                    var htmlContent = await System.IO.File.ReadAllTextAsync(filepath);
-                    return Ok(new { html = htmlContent });
-                }
-                return NotFound(new { message = "File not found." });
+                return false;
             }
-            return BadRequest(new { message = "Unauthorized." });
+            _loggedUser = user;
+            return true;
         }
         
         private List<Claim> AddClaims(User user)
@@ -71,6 +65,21 @@ namespace showcase.Controllers
             return claims;
         }
 
+        private ClaimsPrincipal CreateClaimsPrincipal(User user)
+        {
+            var claimsIdentity = new ClaimsIdentity(AddClaims(user), 
+                CookieAuthenticationDefaults.AuthenticationScheme);
+            return new ClaimsPrincipal(claimsIdentity);
+        }
+
+        private async Task SignInUserAsync(ClaimsPrincipal claimsPrincipal)
+        {
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                claimsPrincipal
+            );
+        }
+        
         private string MapRoleToUser(User userLoggingIn)
         {
             if (userLoggingIn.Role == 1)
@@ -78,6 +87,57 @@ namespace showcase.Controllers
                 return("Admin");
             }
             return("User");
+        }
+
+        private bool CheckIfUserIsAdmin(User user)
+        {
+            if (user.Role == 1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async Task<String> CreateHtmlContentIfHtmlFileExists()
+        {
+            var filepath = Path.Combine(Directory.GetCurrentDirectory(), "AuthViews", "adminview.html");
+            if (System.IO.File.Exists(filepath))
+            {
+                var htmlContent = await System.IO.File.ReadAllTextAsync(filepath);
+                return htmlContent;
+            }
+            return string.Empty;
+        }
+        
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] User userLoggingIn)
+        {
+            if (!CheckIfInputsMissing(userLoggingIn))
+            {
+                return BadRequest("Name and Password are required");
+            }
+            
+            if(!await CheckIfUserExistsInDatabaseAsync(userLoggingIn))
+            {
+                return BadRequest("User not found");
+            }
+            
+            var claimsPrincipal = CreateClaimsPrincipal(_loggedUser);
+            
+            await SignInUserAsync(claimsPrincipal);
+
+
+            if (CheckIfUserIsAdmin(_loggedUser))
+            {
+                String htmlContent = await CreateHtmlContentIfHtmlFileExists();
+                if (htmlContent == String.Empty)
+                {
+                    return NotFound(new { message = "File not found." });
+                }
+                return Ok(new { html = htmlContent });
+            }
+            return BadRequest(new { message = "Unauthorized." });
         }
     }
 }
