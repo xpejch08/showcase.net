@@ -1,52 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.IO;
 
 using showcase;
 
 namespace showcase.Controllers
 {
-    [ApiController]
-    [Authorize(Roles = "Admin")]
-    [Route("admin")]
-    public class AdminController : Controller
-    {
-        [HttpGet("dashboard")]
-        public IActionResult AdminView()
-        {
-            try
-            {
-                return Ok(new { redirectUrl = "/views/admin/adminview.html" });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                return StatusCode(500, "Internal server error.");
-            }
-        }
-        
-        [HttpGet("test-admin")]
-        public IActionResult TestAdmin()
-        {
-            if (User.IsInRole("Admin"))
-            {
-                return Ok("You are an Admin!");
-            }
-            return Unauthorized("You are not an Admin.");
-        }
-
-    }
-    
-
-    
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -153,17 +114,6 @@ namespace showcase.Controllers
 
             return false;
         }
-
-        private async Task<String> CreateHtmlContentIfHtmlFileExists()
-        {
-            var filepath = Path.Combine(Directory.GetCurrentDirectory(), "AuthViews", "adminview.html");
-            if (System.IO.File.Exists(filepath))
-            {
-                var htmlContent = await System.IO.File.ReadAllTextAsync(filepath);
-                return htmlContent;
-            }
-            return string.Empty;
-        }
         
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User userLoggingIn)
@@ -189,6 +139,17 @@ namespace showcase.Controllers
                 return Redirect("/admin/dashboard");
             }
             return BadRequest(new { message = "Unauthorized." });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Redirect("/login");
+            }
+            return Redirect("/admin/dashboard");
         }
     }
 }
