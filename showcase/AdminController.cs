@@ -22,15 +22,4 @@ public class AdminController : Controller
             return StatusCode(500, "Internal server error.");
         }
     }
-        
-    [HttpGet("test-admin")]
-    public IActionResult TestAdmin()
-    {
-        if (User.IsInRole("Admin"))
-        {
-            return Ok("You are an Admin!");
-        }
-        return Unauthorized("You are not an Admin.");
-    }
-
 }

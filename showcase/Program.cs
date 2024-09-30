@@ -6,9 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://localhost:5050");
 
-// Add services to the container
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=showcase.db"));
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
     options.LoginPath = "/login.html";
@@ -20,6 +20,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
+builder.Services.AddScoped<DbHelperMethods>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
