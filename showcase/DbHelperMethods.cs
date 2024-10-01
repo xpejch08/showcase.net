@@ -122,4 +122,9 @@ public class DbHelperMethods
     {
         await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
+
+    public async Task AddUserToDatabaseAsync(User user)
+    {
+        await _context.Users.AddAsync(user);
+    }
 }
