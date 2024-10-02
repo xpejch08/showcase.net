@@ -22,14 +22,19 @@ public class UserManipulationController : ControllerBase
 
     
     
-    [HttpGet("GetUser")]
+    [HttpPost("GetUser")]
     public async Task<IActionResult> GetUser([FromBody] User user)
     {
         var foundUser = await _helperMethods.CheckIfUserExistsInDatabaseAsync(user);
 
-        return Ok(foundUser);
+        if (foundUser == null)
+        {
+            return NotFound();  // Return 404 if no matching user
+        }
 
+        return Ok(foundUser);  // Return 200 with found user
     }
+
 
     [HttpPost("AddUser")]
     public async Task<IActionResult> AddUser([FromBody] User user)
