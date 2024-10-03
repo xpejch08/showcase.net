@@ -98,6 +98,30 @@ namespace TestProject1
             responseContent.Should().Contain("\"redirectUrl\":\"/views/admin/adminview.html\"");
         }
 
+        [Test]
+        public async Task Logout_should_Redirect_when_user_logs_out()
+        {
+            //first log user in
+            var content = new StringContent(
+                "{\"name\":\"admin\",\"password\":\"admin\"}",
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+            var response = await _client.PostAsync("/api/auth/login", content);
+            
+            //then logout
+            
+            content = new StringContent(
+                "",
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+            var logoutResponse = await _client.PostAsync("/api/auth/logout",content);
+            
+            logoutResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+        }
+
 
         
         [TearDown]
