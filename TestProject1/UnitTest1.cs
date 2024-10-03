@@ -122,6 +122,14 @@ namespace TestProject1
             
         }
 
+        [Test]
+        public async Task Non_Authenticated_User_cannot_access_adminView()
+        {
+            var response = await _client.GetAsync("/views/admin/adminview.html");
+            
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        }
+
 
         
         [TearDown]
