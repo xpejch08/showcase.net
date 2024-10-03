@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace showcase;
 
-
+//todo set up rights
 [ApiController]
 [Route("api/[controller]")]
 public class UserManipulationController : ControllerBase
