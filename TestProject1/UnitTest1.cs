@@ -129,6 +129,23 @@ namespace TestProject1
             
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
+        
+        //test for adding a user to the database
+        [Test]
+        public async Task Add_User_To_Db_Test()
+        {
+            // Arrange: Send a valid user object
+            var content = new StringContent(
+                "{\"name\":\"newuser\",\"password\":\"newuser\"}", 
+                System.Text.Encoding.UTF8, 
+                "application/json");
+
+            // Act: Make a POST request
+            var response = await _client.PutAsync("/api/UserManipulation/AddUser", content);
+
+            // Assert: Expect OK status code (200)
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
 
 
         
