@@ -147,6 +147,26 @@ namespace TestProject1
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
+        [Test]
+        public async Task Delete_User_From_Db()
+        {
+            
+            // create new user
+            var content = new StringContent(
+                "{\"name\":\"newuserTest\",\"password\":\"newuser\"}", 
+                System.Text.Encoding.UTF8, 
+                "application/json");
+
+            // Act: Make a POST request
+            var response = await _client.PutAsync("/api/UserManipulation/AddUser", content);
+            
+            response = await _client.PostAsync("/api/UserManipulation/DeleteUser", content);
+            
+            
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+        }
+
 
         
         [TearDown]
