@@ -139,9 +139,10 @@ namespace TestProject1
                 "{\"name\":\"newuser\",\"password\":\"newuser\"}", 
                 System.Text.Encoding.UTF8, 
                 "application/json");
-
+            
+            var response = await _client.PostAsync("/api/UserManipulation/DeleteUser", content);
             // Act: Make a POST request
-            var response = await _client.PutAsync("/api/UserManipulation/AddUser", content);
+            response = await _client.PostAsync("/api/UserManipulation/AddUser", content);
 
             // Assert: Expect OK status code (200)
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -158,7 +159,7 @@ namespace TestProject1
                 "application/json");
 
             // Act: Make a POST request
-            var response = await _client.PutAsync("/api/UserManipulation/AddUser", content);
+            var response = await _client.PostAsync("/api/UserManipulation/AddUser", content);
             
             response = await _client.PostAsync("/api/UserManipulation/DeleteUser", content);
             

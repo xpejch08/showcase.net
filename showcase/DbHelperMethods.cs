@@ -125,6 +125,29 @@ public class DbHelperMethods
 
     public async Task AddUserToDatabaseAsync(User user)
     {
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Name == user.Name);
+        if (existingUser != null)
+        {
+            throw new ArgumentException("User already exists");
+        }
+        
         await _context.Users.AddAsync(user);
+        
+        await _context.SaveChangesAsync();
+    }
+    public async Task DeleteUserFromDatabaseAsync(User user)
+    {
+        var userToDelete = await _context.Users.FirstOrDefaultAsync(u => u.Name == user.Name 
+                                                                         && u.Password == user.Password);
+        if (userToDelete != null)
+        {
+            _context.Users.Remove(userToDelete);
+
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new ArgumentException("User not found");
+        }
     }
 }

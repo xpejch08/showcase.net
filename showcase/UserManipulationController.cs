@@ -42,6 +42,12 @@ public class UserManipulationController : ControllerBase
         await _helperMethods.AddUserToDatabaseAsync(user);
         return Ok();
     }
+    [HttpPost("DeleteUser")]
+    public async Task<IActionResult> DeleteUser([FromBody] User user)
+    {
+        await _helperMethods.DeleteUserFromDatabaseAsync(user);
+        return Ok();
+    }
     
     
 }
