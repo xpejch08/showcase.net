@@ -140,6 +140,7 @@ namespace TestProject1
                 System.Text.Encoding.UTF8, 
                 "application/json");
             
+            
             var response = await _client.PostAsync("/api/UserManipulation/DeleteUser", content);
             // Act: Make a POST request
             response = await _client.PostAsync("/api/UserManipulation/AddUser", content);
@@ -166,6 +167,48 @@ namespace TestProject1
             
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
+        }
+
+        [Test]
+        public async Task Change_Role_Of_User()
+        {
+            var content = new StringContent(
+                "{\"name\":\"newuserTest\",\"role\":\"4\"}", 
+                System.Text.Encoding.UTF8, 
+                "application/json");
+            
+            var admin = new StringContent(
+                "{\"name\":\"admin\",\"password\":\"admin\"}",
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+            
+            
+            var response = await _client.PostAsync("/api/auth/login", admin);
+            
+            
+            //user exists
+            response = await _client.PostAsync("/api/UserManipulation/ChangeRoleOfUSer", content);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+            content = new StringContent(
+                "{\"name\":\"nonexistant\",\"role\":\"4\"}", 
+                System.Text.Encoding.UTF8, 
+                "application/json");
+            
+            //user doesn't exist
+            response = await _client.PostAsync("/api/UserManipulation/ChangeRoleOfUSer", content);
+
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            
+            
+            //logout admin, no rights to change role
+            await _client.PostAsync("/api/auth/logout",admin);
+            
+            response = await _client.PostAsync("/api/UserManipulation/ChangeRoleOfUSer", content);
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
 
 
